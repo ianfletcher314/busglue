@@ -1,0 +1,42 @@
+# Build directories
+Builds/
+build/
+cmake-build-*/
+
+# IDE files
+.idea/
+.vscode/
+*.xcodeproj/
+*.xcworkspace/
+*.sln
+*.vcxproj*
+
+# JUCE artifacts
+JuceLibraryCode/*.cpp
+
+# Compiled plugins
+*.vst
+*.vst3
+*.component
+*.aaxplugin
+*.app
+
+# Object files
+*.o
+*.obj
+
+# macOS
+.DS_Store
+*.dSYM/
+
+# Windows
+Thumbs.db
+*.dll
+*.exe
+
+# Linux
+*.so
+
+# Temporary files
+*.tmp
+*~
