@@ -209,9 +209,9 @@ public:
         g.setColour(juce::Colour(0xff1a1a18));
         g.fillRoundedRectangle(bounds, 6.0f);
 
-        // Scale arc - pivot near bottom of frame
+        // Scale arc - frame bottom bisects pivot dot
         float centerX = bounds.getCentreX();
-        float centerY = bounds.getBottom() + 5.0f;
+        float centerY = bounds.getBottom();
         float arcRadius = bounds.getWidth() * 0.42f;
 
         // Draw scale markings

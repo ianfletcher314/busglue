@@ -20,12 +20,12 @@ BusGlueAudioProcessorEditor::BusGlueAudioProcessorEditor(BusGlueAudioProcessor& 
     titleLabel.setJustificationType(juce::Justification::centredLeft);
     addAndMakeVisible(titleLabel);
 
-    // GR label
+    // GR label (hidden - meter only)
     grLabel.setText("GR", juce::dontSendNotification);
     grLabel.setFont(juce::Font(10.0f));
     grLabel.setColour(juce::Label::textColourId, Colors::textSecondary);
     grLabel.setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(grLabel);
+    // grLabel not added - just showing meter
     DBG("BusGlue: Editor - labels created");
 
     // Setup main knobs
@@ -144,7 +144,7 @@ BusGlueAudioProcessorEditor::BusGlueAudioProcessorEditor(BusGlueAudioProcessor& 
 
     // Set size and start timer - compact but room for VU
     DBG("BusGlue: Editor - setting size 650x260");
-    setSize(650, 260);
+    setSize(650, 275);
 
     // Defer timer start to avoid potential deadlock with host's message thread during plugin loading.
     // Starting a timer synchronously in the constructor can block if the host's message loop
@@ -281,8 +281,6 @@ void BusGlueAudioProcessorEditor::resized()
     // Header
     titleLabel.setBounds(14, 6, 100, 20);
     bypassButton.setBounds(getWidth() - 72, 6, 60, 18);
-    grMeter.setBounds(120, 4, 180, 22);
-    grLabel.setBounds(305, 4, 22, 22);
 
     // Main area after header
     bounds.removeFromTop(28);
@@ -329,7 +327,6 @@ void BusGlueAudioProcessorEditor::resized()
     ratioLabel.setBounds(dynamicsSection.getX(), topY, col1W, labelHeight);
     ratioSelector.setBounds(dynamicsSection.getX() + 2, topY + labelHeight, col1W - 4, comboHeight);
     ratioContinuousSlider.setBounds(dynamicsSection.getX() + 6, topY + labelHeight, knobSize - 10, knobSize - 10);
-    steppedRatioButton.setBounds(dynamicsSection.getX() + 2, topY + labelHeight + comboHeight + 2, col1W - 4, 14);
 
     attackLabel.setBounds(dynamicsSection.getX() + col1W, topY, col2W, labelHeight);
     attackSelector.setBounds(dynamicsSection.getX() + col1W + 2, topY + labelHeight, col2W - 4, comboHeight);
@@ -338,10 +335,18 @@ void BusGlueAudioProcessorEditor::resized()
     int row2Y = topY + labelHeight + comboHeight + 16;
     releaseLabel.setBounds(dynamicsSection.getX(), row2Y, col1W, labelHeight);
     releaseSelector.setBounds(dynamicsSection.getX() + 2, row2Y + labelHeight, col1W - 4, comboHeight);
+    steppedRatioButton.setBounds(dynamicsSection.getX() + 2, row2Y + labelHeight + comboHeight + 16, col1W - 4, 14);
 
     kneeLabel.setBounds(dynamicsSection.getX() + col1W, row2Y, col2W, labelHeight);
     knobX = dynamicsSection.getX() + col1W + (col2W - knobSize) / 2;
     kneeSlider.setBounds(knobX, row2Y + labelHeight, knobSize, knobTotal);
+
+    // GR meter - equidistant between Knee bottom and Detection top (no label)
+    int kneeBottom = row2Y + labelHeight + knobTotal;
+    int detectionTop = bottomRowY - labelHeight - 2;
+    int grHeight = 16;
+    int grY = kneeBottom + (detectionTop - kneeBottom - grHeight) / 2;
+    grMeter.setBounds(dynamicsSection.getX() + 2, grY, dynamicsSection.getWidth() - 4, grHeight);
 
     // Bottom row: Detection, Topology - aligned at bottom
     detectionLabel.setBounds(dynamicsSection.getX(), bottomRowY - labelHeight - 2, col1W, labelHeight);
@@ -358,7 +363,7 @@ void BusGlueAudioProcessorEditor::resized()
     int spaceAboveMixLink = bottomKnobY - labelHeight - 4 - topY;
 
     // VU Meter - bigger, room for all numbers and needle
-    int vuHeight = 90;
+    int vuHeight = 100;
     vuMeter.setBounds(characterSection.getX() + 15, topY - 2, characterSection.getWidth() - 30, vuHeight);
 
     // Character selector - below VU meter
