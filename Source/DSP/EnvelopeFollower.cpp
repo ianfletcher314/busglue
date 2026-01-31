@@ -29,6 +29,9 @@ void EnvelopeFollower::updateCoefficients()
     // Auto-release: fast = 50ms, slow = 2000ms (program dependent)
     releaseFastCoeff = DSPUtils::calculateCoefficient(currentSampleRate, 50.0f);
     releaseSlowCoeff = DSPUtils::calculateCoefficient(currentSampleRate, 2000.0f);
+
+    // RMS smoothing coefficient (10ms window)
+    rmsCoeff = DSPUtils::calculateCoefficient(currentSampleRate, 10.0f);
 }
 
 void EnvelopeFollower::setAttack(float ms)
@@ -70,7 +73,6 @@ float EnvelopeFollower::processSample(float input)
     {
         // Smooth the squared value, then take sqrt
         float squared = input * input;
-        float rmsCoeff = DSPUtils::calculateCoefficient(currentSampleRate, 10.0f);
         rmsSquaredL += rmsCoeff * (squared - rmsSquaredL);
         rectified = std::sqrt(rmsSquaredL);
     }
@@ -113,7 +115,6 @@ void EnvelopeFollower::processStereo(float inputL, float inputR, float linkAmoun
     {
         float squaredL = inputL * inputL;
         float squaredR = inputR * inputR;
-        float rmsCoeff = DSPUtils::calculateCoefficient(currentSampleRate, 10.0f);
         rmsSquaredL += rmsCoeff * (squaredL - rmsSquaredL);
         rmsSquaredR += rmsCoeff * (squaredR - rmsSquaredR);
         rectL = std::sqrt(rmsSquaredL);

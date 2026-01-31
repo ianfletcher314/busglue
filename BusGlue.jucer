@@ -1,30 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="BuG1Pr" name="BusGlue" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="1" jucerFormatVersion="1"
-              companyName="Ian Fletcher Audio" companyCopyright="2024 Ian Fletcher Audio"
-              companyWebsite="https://github.com/ianfletcher314"
-              pluginFormats="buildAU,buildStandalone,buildVST3"
-              pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn,pluginProducesMidiOut,pluginIsMidiEffectPlugin"
-              pluginManufacturerCode="IFAu" pluginCode="BuG1"
-              pluginName="Bus Glue" pluginDesc="SSL/API Style Bus Compressor"
-              pluginAUMainType="'aufx'" aaxIdentifier="com.ianfletcheraudio.busglue"
-              bundleIdentifier="com.ianfletcheraudio.busglue"
-              cppLanguageStandard="17" pluginVST3Category="Dynamics,Fx"
-              version="1.0.0" displaySplashScreen="0">
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" companyName="Fletcher"
+              companyCopyright="2025" companyWebsite="https://github.com/ianfletcher314"
+              pluginFormats="buildAU,buildVST3" pluginCharacteristicsValue=""
+              pluginManufacturer="Fletcher" pluginManufacturerCode="Flet" pluginCode="BusG" pluginName="Bus Glue"
+              pluginDesc="SSL/API Style Bus Compressor" pluginAUMainType="'aufx'"
+              aaxIdentifier="com.ianfletcheraudio.busglue" bundleIdentifier="com.ianfletcheraudio.busglue"
+              cppLanguageStandard="17" pluginVST3Category="Dynamics,Fx" version="1.0.0"
+              displaySplashScreen="0">
   <MAINGROUP id="mainGroup" name="BusGlue">
     <GROUP id="sourceGroup" name="Source">
       <FILE id="procH" name="PluginProcessor.h" compile="0" resource="0"
             file="Source/PluginProcessor.h"/>
       <FILE id="procCpp" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
-      <FILE id="editH" name="PluginEditor.h" compile="0" resource="0"
-            file="Source/PluginEditor.h"/>
+      <FILE id="editH" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
       <FILE id="editCpp" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
       <GROUP id="dspGroup" name="DSP">
-        <FILE id="dspUtils" name="DSPUtils.h" compile="0" resource="0"
-              file="Source/DSP/DSPUtils.h"/>
+        <FILE id="dspUtils" name="DSPUtils.h" compile="0" resource="0" file="Source/DSP/DSPUtils.h"/>
         <FILE id="busCompH" name="BusCompressor.h" compile="0" resource="0"
               file="Source/DSP/BusCompressor.h"/>
         <FILE id="busCompCpp" name="BusCompressor.cpp" compile="1" resource="0"
@@ -33,16 +28,17 @@
               file="Source/DSP/EnvelopeFollower.h"/>
         <FILE id="envFollowCpp" name="EnvelopeFollower.cpp" compile="1" resource="0"
               file="Source/DSP/EnvelopeFollower.cpp"/>
-        <FILE id="satH" name="Saturator.h" compile="0" resource="0"
-              file="Source/DSP/Saturator.h"/>
-        <FILE id="satCpp" name="Saturator.cpp" compile="1" resource="0"
-              file="Source/DSP/Saturator.cpp"/>
+        <FILE id="satH" name="Saturator.h" compile="0" resource="0" file="Source/DSP/Saturator.h"/>
+        <FILE id="satCpp" name="Saturator.cpp" compile="1" resource="0" file="Source/DSP/Saturator.cpp"/>
       </GROUP>
       <GROUP id="uiGroup" name="UI">
-        <FILE id="lookFeel" name="LookAndFeel.h" compile="0" resource="0"
-              file="Source/UI/LookAndFeel.h"/>
+        <FILE id="lookFeel" name="LookAndFeel.h" compile="0" resource="0" file="Source/UI/LookAndFeel.h"/>
         <FILE id="meterComp" name="MeterComponents.h" compile="0" resource="0"
               file="Source/UI/MeterComponents.h"/>
+      </GROUP>
+      <GROUP id="resourcesGroup" name="Resources">
+        <FILE id="bgImage" name="background.png" compile="0" resource="1"
+              file="Source/background.png"/>
       </GROUP>
     </GROUP>
     <GROUP id="juceLibCode" name="JuceLibraryCode">
@@ -61,19 +57,20 @@
         <CONFIGURATION isDebug="0" name="Release" targetName="BusGlue"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics" path=""/>
-        <MODULEPATH id="juce_audio_devices" path=""/>
-        <MODULEPATH id="juce_audio_formats" path=""/>
-        <MODULEPATH id="juce_audio_plugin_client" path=""/>
-        <MODULEPATH id="juce_audio_processors" path=""/>
-        <MODULEPATH id="juce_audio_utils" path=""/>
-        <MODULEPATH id="juce_core" path=""/>
-        <MODULEPATH id="juce_data_structures" path=""/>
-        <MODULEPATH id="juce_dsp" path=""/>
-        <MODULEPATH id="juce_events" path=""/>
-        <MODULEPATH id="juce_graphics" path=""/>
-        <MODULEPATH id="juce_gui_basics" path=""/>
-        <MODULEPATH id="juce_gui_extra" path=""/>
+        <MODULEPATH id="juce_audio_basics" path="/Users/ianfletcher/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="/Users/ianfletcher/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="/Users/ianfletcher/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="/Users/ianfletcher/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="/Users/ianfletcher/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="/Users/ianfletcher/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="/Users/ianfletcher/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="/Users/ianfletcher/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="/Users/ianfletcher/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="/Users/ianfletcher/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="/Users/ianfletcher/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="/Users/ianfletcher/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="/Users/ianfletcher/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <VS2022 targetFolder="Builds/VisualStudio2022">
@@ -95,6 +92,7 @@
         <MODULEPATH id="juce_graphics" path=""/>
         <MODULEPATH id="juce_gui_basics" path=""/>
         <MODULEPATH id="juce_gui_extra" path=""/>
+        <MODULEPATH id="juce_audio_processors_headless" path="../JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
@@ -116,6 +114,7 @@
         <MODULEPATH id="juce_graphics" path=""/>
         <MODULEPATH id="juce_gui_basics" path=""/>
         <MODULEPATH id="juce_gui_extra" path=""/>
+        <MODULEPATH id="juce_audio_processors_headless" path="../JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
   </EXPORTFORMATS>
@@ -123,8 +122,11 @@
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
     <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>

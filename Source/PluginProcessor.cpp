@@ -4,10 +4,10 @@
 BusGlueAudioProcessor::BusGlueAudioProcessor()
     : AudioProcessor(BusesProperties()
                      .withInput("Input", juce::AudioChannelSet::stereo(), true)
-                     .withInput("Sidechain", juce::AudioChannelSet::stereo(), true)
                      .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       apvts(*this, nullptr, "Parameters", createParameterLayout())
 {
+    DBG("BusGlue: Constructor ENTRY - BusesProperties OK, APVTS created");
     // Cache parameter pointers
     bypass = apvts.getRawParameterValue("bypass");
     threshold = apvts.getRawParameterValue("threshold");
@@ -25,6 +25,10 @@ BusGlueAudioProcessor::BusGlueAudioProcessor()
     topology = apvts.getRawParameterValue("topology");
     character = apvts.getRawParameterValue("character");
     useSteppedRatio = apvts.getRawParameterValue("useSteppedRatio");
+    DBG("BusGlue: Parameters cached - bypass=" << (bypass != nullptr)
+        << ", threshold=" << (threshold != nullptr)
+        << ", all pointers valid");
+    DBG("BusGlue: Constructor EXIT - SUCCESS");
 }
 
 BusGlueAudioProcessor::~BusGlueAudioProcessor()
@@ -33,6 +37,7 @@ BusGlueAudioProcessor::~BusGlueAudioProcessor()
 
 juce::AudioProcessorValueTreeState::ParameterLayout BusGlueAudioProcessor::createParameterLayout()
 {
+    DBG("BusGlue: createParameterLayout ENTRY");
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
     // Bypass
@@ -126,12 +131,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout BusGlueAudioProcessor::creat
         juce::ParameterID("character", 1), "Character",
         juce::StringArray{ "Clean", "Punch", "Warm", "Aggressive" }, 0));
 
+    DBG("BusGlue: createParameterLayout EXIT - " << params.size() << " parameters created");
     return { params.begin(), params.end() };
 }
 
 void BusGlueAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
+    DBG("BusGlue: prepareToPlay start - sampleRate=" << sampleRate << ", blockSize=" << samplesPerBlock);
     compressor.prepare(sampleRate, samplesPerBlock);
+    DBG("BusGlue: prepareToPlay end");
 }
 
 void BusGlueAudioProcessor::releaseResources()
@@ -141,12 +149,34 @@ void BusGlueAudioProcessor::releaseResources()
 
 bool BusGlueAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
-    // Main I/O must be stereo
-    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
-        return false;
-    if (layouts.getMainInputChannelSet() != juce::AudioChannelSet::stereo())
-        return false;
+    // Only accept stereo - DSP requires 2 channels
+    // Also accept disabled (empty) layouts for AU compatibility
+    const auto& mainOutput = layouts.getMainOutputChannelSet();
+    const auto& mainInput = layouts.getMainInputChannelSet();
 
+    DBG("BusGlue: isBusesLayoutSupported - input=" << mainInput.getDescription()
+        << ", output=" << mainOutput.getDescription());
+
+    // Allow disabled state (AU hosts query this)
+    if (mainOutput.isDisabled() && mainInput.isDisabled())
+    {
+        DBG("BusGlue: isBusesLayoutSupported -> true (disabled)");
+        return true;
+    }
+
+    // Must be stereo
+    if (mainOutput != juce::AudioChannelSet::stereo())
+    {
+        DBG("BusGlue: isBusesLayoutSupported -> false (output not stereo)");
+        return false;
+    }
+    if (mainInput != juce::AudioChannelSet::stereo())
+    {
+        DBG("BusGlue: isBusesLayoutSupported -> false (input not stereo)");
+        return false;
+    }
+
+    DBG("BusGlue: isBusesLayoutSupported -> true (stereo)");
     return true;
 }
 
@@ -198,40 +228,16 @@ void BusGlueAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
     auto charMode = static_cast<int>(character->load());
     compressor.setCharacterMode(static_cast<Saturator::CharacterMode>(charMode));
 
-    // Check for external sidechain
-    auto mainInputBus = getBus(true, 0);
-    auto sidechainBus = getBus(true, 1);
-
-    if (sidechainBus != nullptr && sidechainBus->isEnabled())
-    {
-        // External sidechain available
-        juce::AudioBuffer<float> sidechainBuffer(buffer.getNumChannels(),
-                                                  buffer.getNumSamples());
-
-        // Copy sidechain data (channels 2-3 if present)
-        for (int ch = 0; ch < juce::jmin(2, buffer.getNumChannels()); ++ch)
-        {
-            if (ch + 2 < buffer.getNumChannels())
-                sidechainBuffer.copyFrom(ch, 0, buffer, ch + 2, 0, buffer.getNumSamples());
-            else
-                sidechainBuffer.copyFrom(ch, 0, buffer, ch, 0, buffer.getNumSamples());
-        }
-
-        // Create main buffer (just first 2 channels)
-        juce::AudioBuffer<float> mainBuffer(buffer.getArrayOfWritePointers(), 2, buffer.getNumSamples());
-
-        compressor.processSidechain(mainBuffer, sidechainBuffer);
-    }
-    else
-    {
-        // Internal sidechain
-        compressor.process(buffer);
-    }
+    // Process compression
+    compressor.process(buffer);
 }
 
 juce::AudioProcessorEditor* BusGlueAudioProcessor::createEditor()
 {
-    return new BusGlueAudioProcessorEditor(*this);
+    DBG("BusGlue: createEditor ENTRY");
+    auto* editor = new BusGlueAudioProcessorEditor(*this);
+    DBG("BusGlue: createEditor EXIT - editor=" << (void*)editor);
+    return editor;
 }
 
 bool BusGlueAudioProcessor::hasEditor() const { return true; }
@@ -255,12 +261,38 @@ void BusGlueAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 
 void BusGlueAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
-    std::unique_ptr<juce::XmlElement> xml(getXmlFromBinary(data, sizeInBytes));
-    if (xml != nullptr && xml->hasTagName(apvts.state.getType()))
-        apvts.replaceState(juce::ValueTree::fromXml(*xml));
+    DBG("BusGlue: setStateInformation called with " << sizeInBytes << " bytes");
+
+    // Wrap in try-catch to prevent crashes from malformed state data
+    try
+    {
+        std::unique_ptr<juce::XmlElement> xml(getXmlFromBinary(data, sizeInBytes));
+        if (xml != nullptr && xml->hasTagName(apvts.state.getType()))
+        {
+            apvts.replaceState(juce::ValueTree::fromXml(*xml));
+            DBG("BusGlue: State restored successfully");
+        }
+        else
+        {
+            DBG("BusGlue: Invalid state data - ignoring");
+        }
+    }
+    catch (const std::exception& e)
+    {
+        DBG("BusGlue: Exception in setStateInformation: " << e.what());
+        // Don't crash - just ignore malformed state
+    }
+    catch (...)
+    {
+        DBG("BusGlue: Unknown exception in setStateInformation");
+        // Don't crash - just ignore malformed state
+    }
 }
 
-juce::AudioProcessor* JUCE_CALLTYPE createPluginInstance()
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new BusGlueAudioProcessor();
+    DBG("BusGlue: createPluginFilter ENTRY");
+    auto* processor = new BusGlueAudioProcessor();
+    DBG("BusGlue: createPluginFilter EXIT - processor=" << (void*)processor);
+    return processor;
 }

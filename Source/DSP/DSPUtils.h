@@ -16,10 +16,13 @@ namespace DSPUtils
         return std::pow(10.0f, dB / 20.0f);
     }
 
-    // Range mapping
+    // Range mapping (safe from division by zero)
     inline float mapRange(float value, float inMin, float inMax, float outMin, float outMax)
     {
-        return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
+        float range = inMax - inMin;
+        if (std::abs(range) < 1e-10f)
+            return outMin;  // Avoid division by zero
+        return outMin + (outMax - outMin) * (value - inMin) / range;
     }
 
     // Clipping functions
@@ -51,12 +54,21 @@ namespace DSPUtils
     inline BiquadCoeffs calcHighPass(double sampleRate, float freq, float q = 0.707f)
     {
         BiquadCoeffs c;
+
+        // Clamp frequency to valid range (avoid edge cases)
+        float nyquist = static_cast<float>(sampleRate) * 0.5f;
+        freq = std::clamp(freq, 1.0f, nyquist * 0.99f);
+        q = std::max(q, 0.1f);  // Avoid division by zero
+
         float w0 = 2.0f * 3.14159265358979323846f * freq / static_cast<float>(sampleRate);
         float cosw0 = std::cos(w0);
         float sinw0 = std::sin(w0);
         float alpha = sinw0 / (2.0f * q);
 
         float a0 = 1.0f + alpha;
+        if (std::abs(a0) < 1e-10f)
+            return c;  // Return unity (passthrough) on degenerate case
+
         c.b0 = ((1.0f + cosw0) / 2.0f) / a0;
         c.b1 = (-(1.0f + cosw0)) / a0;
         c.b2 = ((1.0f + cosw0) / 2.0f) / a0;
@@ -70,12 +82,21 @@ namespace DSPUtils
     inline BiquadCoeffs calcLowPass(double sampleRate, float freq, float q = 0.707f)
     {
         BiquadCoeffs c;
+
+        // Clamp frequency to valid range (avoid edge cases)
+        float nyquist = static_cast<float>(sampleRate) * 0.5f;
+        freq = std::clamp(freq, 1.0f, nyquist * 0.99f);
+        q = std::max(q, 0.1f);  // Avoid division by zero
+
         float w0 = 2.0f * 3.14159265358979323846f * freq / static_cast<float>(sampleRate);
         float cosw0 = std::cos(w0);
         float sinw0 = std::sin(w0);
         float alpha = sinw0 / (2.0f * q);
 
         float a0 = 1.0f + alpha;
+        if (std::abs(a0) < 1e-10f)
+            return c;  // Return unity (passthrough) on degenerate case
+
         c.b0 = ((1.0f - cosw0) / 2.0f) / a0;
         c.b1 = (1.0f - cosw0) / a0;
         c.b2 = ((1.0f - cosw0) / 2.0f) / a0;
@@ -88,7 +109,10 @@ namespace DSPUtils
     // Soft knee computation
     inline float computeSoftKnee(float inputDb, float thresholdDb, float ratio, float kneeWidth)
     {
-        if (kneeWidth <= 0.0f)
+        // Ensure ratio is safe (avoid division by values too close to zero)
+        ratio = std::max(ratio, 1.0f);
+
+        if (kneeWidth <= 0.001f)  // Treat very small knee as hard knee
         {
             // Hard knee
             if (inputDb <= thresholdDb)
@@ -109,6 +133,7 @@ namespace DSPUtils
         // In the knee region - smooth transition
         float kneeProgress = (inputDb - kneeStart) / kneeWidth;
         float effectiveRatio = 1.0f + (ratio - 1.0f) * kneeProgress;
+        effectiveRatio = std::max(effectiveRatio, 1.0f);  // Safety: ensure never below 1
         float kneeGain = inputDb - kneeStart;
         return kneeStart + kneeGain / effectiveRatio;
     }

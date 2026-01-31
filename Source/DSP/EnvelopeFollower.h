@@ -50,6 +50,9 @@ private:
     float releaseFastCoeff = 0.0f;
     float releaseSlowCoeff = 0.0f;
 
+    // RMS smoothing coefficient (precomputed for efficiency)
+    float rmsCoeff = 0.0f;
+
     // State
     float envelopeL = 0.0f;
     float envelopeR = 0.0f;

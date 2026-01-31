@@ -4,22 +4,23 @@
 
 namespace Colors
 {
-    const juce::Colour background     = juce::Colour(0xff1a1a1a);
-    const juce::Colour panelBg        = juce::Colour(0xff252525);
-    const juce::Colour panelBorder    = juce::Colour(0xff353535);
-    const juce::Colour accent         = juce::Colour(0xff4a9eff);
-    const juce::Colour accentWarm     = juce::Colour(0xffff8844);
+    // Green-based color scheme from #76d26e
+    const juce::Colour background     = juce::Colour(0xff2f542c);  // Dark green bg
+    const juce::Colour panelBg        = juce::Colour(0xff3b6937);  // Medium dark green
+    const juce::Colour panelBorder    = juce::Colour(0xff52934d);  // Lighter green border
+    const juce::Colour accent         = juce::Colour(0xff76d26e);  // Main green accent
+    const juce::Colour accentWarm     = juce::Colour(0xff91db8b);  // Lighter green
     const juce::Colour textPrimary    = juce::Colour(0xfff0f0f0);
-    const juce::Colour textSecondary  = juce::Colour(0xff909090);
-    const juce::Colour textDim        = juce::Colour(0xff606060);
-    const juce::Colour meterGreen     = juce::Colour(0xff22c55e);
+    const juce::Colour textSecondary  = juce::Colour(0xffb8e0b4);  // Light green text
+    const juce::Colour textDim        = juce::Colour(0xff6a9a66);  // Dim green text
+    const juce::Colour meterGreen     = juce::Colour(0xff76d26e);
     const juce::Colour meterYellow    = juce::Colour(0xffeab308);
     const juce::Colour meterRed       = juce::Colour(0xffef4444);
     const juce::Colour meterAmber     = juce::Colour(0xffff9933);
-    const juce::Colour knobBody       = juce::Colour(0xff404040);
-    const juce::Colour knobRing       = juce::Colour(0xff505050);
-    const juce::Colour ledOff         = juce::Colour(0xff331111);
-    const juce::Colour ledOn          = juce::Colour(0xffff3333);
+    const juce::Colour knobBody       = juce::Colour(0xff2a4a27);  // Dark green knob
+    const juce::Colour knobRing       = juce::Colour(0xff3d5c39);  // Green ring
+    const juce::Colour ledOff         = juce::Colour(0xff1a2e18);  // Dark green LED off
+    const juce::Colour ledOn          = juce::Colour(0xff76d26e);  // Green LED on
     const juce::Colour ledAmberOff    = juce::Colour(0xff332211);
     const juce::Colour ledAmberOn     = juce::Colour(0xffffaa33);
 }
@@ -83,8 +84,8 @@ public:
         g.setColour(juce::Colour(0xff606060));
         g.drawEllipse(cx - innerRadius, cy - innerRadius, innerRadius * 2.0f, innerRadius * 2.0f, 1.0f);
 
-        // Indicator line (7 o'clock to 5 o'clock range)
-        float indicatorAngle = juce::jmap(sliderPosProportional, 0.0f, 1.0f, -2.356f, 2.356f) + juce::MathConstants<float>::pi;
+        // Indicator line - rotated +90 degrees (top to bottom, through right)
+        float indicatorAngle = juce::jmap(sliderPosProportional, 0.0f, 1.0f, -2.356f, 2.356f) - juce::MathConstants<float>::halfPi;
         float indicatorLength = innerRadius * 0.65f;
         float ix1 = cx + (innerRadius * 0.2f) * std::cos(indicatorAngle);
         float iy1 = cy + (innerRadius * 0.2f) * std::sin(indicatorAngle);
@@ -108,21 +109,24 @@ public:
     void drawStepMarkers(juce::Graphics& g, float cx, float cy, float radius,
                          juce::Slider& slider)
     {
+        // Don't draw step markers for continuous sliders (too many ticks)
         auto range = slider.getRange();
         double step = slider.getInterval();
         if (step <= 0) return;
 
         int numSteps = static_cast<int>((range.getEnd() - range.getStart()) / step) + 1;
+        if (numSteps > 10) return;  // Skip if too many steps (continuous slider)
 
         g.setColour(Colors::textDim);
 
         for (int i = 0; i < numSteps; ++i)
         {
             float normalized = static_cast<float>(i) / static_cast<float>(numSteps - 1);
-            float angle = juce::jmap(normalized, 0.0f, 1.0f, -2.356f, 2.356f) + juce::MathConstants<float>::pi;
+            float angle = juce::jmap(normalized, 0.0f, 1.0f, -2.356f, 2.356f) - juce::MathConstants<float>::halfPi;
 
-            float outerR = radius + 4.0f;
-            float innerR = radius + 8.0f;
+            // Draw markers INSIDE the knob area, not outside
+            float outerR = radius - 2.0f;
+            float innerR = radius - 6.0f;
 
             float x1 = cx + outerR * std::cos(angle);
             float y1 = cy + outerR * std::sin(angle);
@@ -242,10 +246,10 @@ public:
         float cy = bounds.getCentreY();
         float radius = juce::jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f - 2.0f;
 
-        // Highlight current step position with brighter tick
-        float currentAngle = juce::jmap(sliderPosProportional, 0.0f, 1.0f, -2.356f, 2.356f) + juce::MathConstants<float>::pi;
-        float tickR1 = radius + 6.0f;
-        float tickR2 = radius + 12.0f;
+        // Highlight current step position with brighter tick - inside bounds
+        float currentAngle = juce::jmap(sliderPosProportional, 0.0f, 1.0f, -2.356f, 2.356f) - juce::MathConstants<float>::halfPi;
+        float tickR1 = radius - 2.0f;
+        float tickR2 = radius - 8.0f;
 
         g.setColour(Colors::accent);
         float tx1 = cx + tickR1 * std::cos(currentAngle);

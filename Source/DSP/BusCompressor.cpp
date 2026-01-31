@@ -35,9 +35,11 @@ void BusCompressor::reset()
     feedbackGainL = feedbackGainR = 1.0f;
     smoothedGainL = smoothedGainR = 1.0f;
 
-    currentGainReduction = 0.0f;
-    inputLevelL = inputLevelR = 0.0f;
-    outputLevelL = outputLevelR = 0.0f;
+    currentGainReduction.store(0.0f);
+    inputLevelL.store(0.0f);
+    inputLevelR.store(0.0f);
+    outputLevelL.store(0.0f);
+    outputLevelR.store(0.0f);
 }
 
 void BusCompressor::updateSidechainFilter()
@@ -301,12 +303,12 @@ void BusCompressor::process(juce::AudioBuffer<float>& buffer)
     // Apply saturation based on character mode
     saturator.process(buffer);
 
-    // Update metering values
-    inputLevelL = peakInL;
-    inputLevelR = peakInR;
-    outputLevelL = peakOutL;
-    outputLevelR = peakOutR;
-    currentGainReduction = peakGR;
+    // Update metering values (atomic for thread-safe UI access)
+    inputLevelL.store(peakInL);
+    inputLevelR.store(peakInR);
+    outputLevelL.store(peakOutL);
+    outputLevelR.store(peakOutR);
+    currentGainReduction.store(peakGR);
 }
 
 void BusCompressor::processSidechain(juce::AudioBuffer<float>& mainBuffer,
@@ -394,9 +396,10 @@ void BusCompressor::processSidechain(juce::AudioBuffer<float>& mainBuffer,
 
     saturator.process(mainBuffer);
 
-    inputLevelL = peakInL;
-    inputLevelR = peakInR;
-    outputLevelL = peakOutL;
-    outputLevelR = peakOutR;
-    currentGainReduction = peakGR;
+    // Update metering values (atomic for thread-safe UI access)
+    inputLevelL.store(peakInL);
+    inputLevelR.store(peakInR);
+    outputLevelL.store(peakOutL);
+    outputLevelR.store(peakOutR);
+    currentGainReduction.store(peakGR);
 }

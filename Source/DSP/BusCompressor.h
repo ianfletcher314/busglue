@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <atomic>
 #include "DSPUtils.h"
 #include "EnvelopeFollower.h"
 #include "Saturator.h"
@@ -54,12 +55,12 @@ public:
     void setCharacterMode(Saturator::CharacterMode mode);
     void setBypass(bool shouldBypass);
 
-    // Getters for metering
-    float getGainReduction() const { return currentGainReduction; }
-    float getInputLevelL() const { return inputLevelL; }
-    float getInputLevelR() const { return inputLevelR; }
-    float getOutputLevelL() const { return outputLevelL; }
-    float getOutputLevelR() const { return outputLevelR; }
+    // Getters for metering (thread-safe)
+    float getGainReduction() const { return currentGainReduction.load(); }
+    float getInputLevelL() const { return inputLevelL.load(); }
+    float getInputLevelR() const { return inputLevelR.load(); }
+    float getOutputLevelL() const { return outputLevelL.load(); }
+    float getOutputLevelR() const { return outputLevelR.load(); }
 
 private:
     float computeGain(float inputDb);
@@ -94,12 +95,12 @@ private:
     float feedbackGainL = 1.0f;
     float feedbackGainR = 1.0f;
 
-    // Metering
-    float currentGainReduction = 0.0f;
-    float inputLevelL = 0.0f;
-    float inputLevelR = 0.0f;
-    float outputLevelL = 0.0f;
-    float outputLevelR = 0.0f;
+    // Metering (atomic for thread-safe access from UI)
+    std::atomic<float> currentGainReduction { 0.0f };
+    std::atomic<float> inputLevelL { 0.0f };
+    std::atomic<float> inputLevelR { 0.0f };
+    std::atomic<float> outputLevelL { 0.0f };
+    std::atomic<float> outputLevelR { 0.0f };
 
     // Gain smoothing
     float smoothedGainL = 1.0f;

@@ -74,6 +74,9 @@ private:
     float smoothedOutputR = 0.0f;
     float smoothedGR = 0.0f;
 
+    // Background image
+    juce::Image backgroundImage;
+
     // APVTS Attachments
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> thresholdAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> kneeAttachment;
