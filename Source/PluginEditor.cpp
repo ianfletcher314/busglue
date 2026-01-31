@@ -213,9 +213,33 @@ void BusGlueAudioProcessorEditor::paint(juce::Graphics& g)
         clipPath.addRoundedRectangle(mainPanelBounds, 4.0f);
         g.reduceClipRegion(clipPath);
 
-        // Draw the image scaled to fill
-        g.drawImage(backgroundImage, mainPanelBounds,
-                    juce::RectanglePlacement::centred | juce::RectanglePlacement::fillDestination);
+        // Calculate source rectangle - shift up to show more trees (50/50 split)
+        float imgW = (float)backgroundImage.getWidth();
+        float imgH = (float)backgroundImage.getHeight();
+        float destAspect = mainPanelBounds.getWidth() / mainPanelBounds.getHeight();
+        float srcAspect = imgW / imgH;
+
+        juce::Rectangle<float> srcRect;
+        if (srcAspect > destAspect)
+        {
+            // Image is wider - crop sides
+            float srcW = imgH * destAspect;
+            float srcX = (imgW - srcW) / 2.0f;
+            srcRect = juce::Rectangle<float>(srcX, 0, srcW, imgH);
+        }
+        else
+        {
+            // Image is taller - crop top/bottom, shift up for more trees
+            float srcH = imgW / destAspect;
+            float srcY = (imgH - srcH) * 0.25f;  // Shift up - 0.25 shows more top (trees)
+            srcRect = juce::Rectangle<float>(0, srcY, imgW, srcH);
+        }
+
+        g.drawImage(backgroundImage,
+                    mainPanelBounds.getX(), mainPanelBounds.getY(),
+                    mainPanelBounds.getWidth(), mainPanelBounds.getHeight(),
+                    (int)srcRect.getX(), (int)srcRect.getY(),
+                    (int)srcRect.getWidth(), (int)srcRect.getHeight());
 
         // Dark overlay for contrast (semi-transparent)
         g.setColour(Colors::background.withAlpha(0.7f));
@@ -333,8 +357,8 @@ void BusGlueAudioProcessorEditor::resized()
     // Calculate space above Mix/Link
     int spaceAboveMixLink = bottomKnobY - labelHeight - 4 - topY;
 
-    // VU Meter - bigger, room for all numbers including 10
-    int vuHeight = 82;
+    // VU Meter - bigger, room for all numbers and needle
+    int vuHeight = 90;
     vuMeter.setBounds(characterSection.getX() + 15, topY - 2, characterSection.getWidth() - 30, vuHeight);
 
     // Character selector - below VU meter
@@ -361,13 +385,14 @@ void BusGlueAudioProcessorEditor::resized()
     outputMeter.setBounds(outMeterArea.getX(), topY, 20, alignBottom - topY);
     outputSection.removeFromRight(2);
 
-    // Makeup - top, bigger
-    makeupLabel.setBounds(outputSection.getX(), topY, outputSection.getWidth(), labelHeight);
-    knobX = outputSection.getX() + (outputSection.getWidth() - bigKnobSize) / 2;
-    makeupSlider.setBounds(knobX, topY + labelHeight, bigKnobSize, bigKnobTotal);
+    // Auto button - at top
+    autoMakeupButton.setBounds(outputSection.getX() + 2, topY, outputSection.getWidth() - 4, comboHeight);
 
-    // Auto button - aligned at bottom
-    autoMakeupButton.setBounds(outputSection.getX() + 2, bottomRowY, outputSection.getWidth() - 4, comboHeight);
+    // Makeup - bottom, bigger, aligned so bottom matches other knobs
+    int makeupY = bottomKnobY + knobTotal - bigKnobTotal;  // Align bottoms
+    makeupLabel.setBounds(outputSection.getX(), makeupY - labelHeight - 2, outputSection.getWidth(), labelHeight);
+    knobX = outputSection.getX() + (outputSection.getWidth() - bigKnobSize) / 2;
+    makeupSlider.setBounds(knobX, makeupY, bigKnobSize, bigKnobTotal);
 }
 
 void BusGlueAudioProcessorEditor::timerCallback()
